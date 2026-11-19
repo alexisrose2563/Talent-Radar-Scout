@@ -911,7 +911,7 @@ function labScatter(c,pool){const ax=labPro(c)?Object.keys(LAXE):Object.keys(LAX
   const sx=(LAXE[c.lx][3]?iw/(rx[1]-rx[0])*.5:0),sy=(LAXE[c.ly][3]?ih/(ry[1]-ry[0])*.5:0);
   let LB=null;g+=pts.map((o,i)=>{const cl=NCOL[nk(o.p.note)]||['#9AA5A0','#fff'],cx=fx(o.x)+jit(i,1)*sx,cy=fy(o.y)+jit(i,0)*sy,on=c.sel===o.p.id;if(on)LB={cx,cy,p:o.p};return `<g data-lp="${o.p.id}" style="cursor:pointer"><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="13" fill="transparent"/><circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${((()=>{if(!SZ)return on?8:6;const z=SZ.fn(o.p);const r=z==null?3.5:3.5+8*z;return on?r+2:r})()).toFixed(1)}" fill="${cl[0]}" style="stroke:var(--ink);stroke-opacity:${on?1:.6};stroke-width:${on?2.2:1}"><title>${esc((o.p.prenom||'')+' '+(o.p.nom||''))}</title></circle></g>`}).join('');if(LB){const nm=((LB.p.prenom||'')+' '+(LB.p.nom||'')).trim(),right=LB.cx>W*0.6,tx=right?LB.cx-14:LB.cx+14,ty=LB.cy>24?LB.cy-12:LB.cy+22;g+=`<text x="${tx.toFixed(1)}" y="${ty.toFixed(1)}" text-anchor="${right?'end':'start'}" style="font:700 13px system-ui,sans-serif;fill:#1b3a2d;paint-order:stroke;stroke:#fff;stroke-width:4px;stroke-linejoin:round;pointer-events:none">${esc(nm)}</text>`}
   const sp=c.sel&&S.players.find(p=>p.id===c.sel);
-  const info=sp?`<div class="labinfo" data-nid="${sp.id}">${chip(sp)}<span class="ri"><b>${esc(sp.prenom||'')} ${esc((sp.nom||'').toUpperCase())}</b><small>${[ab(sp.poste),sp.club,sp.champ,age(sp.naissance)!==''?age(sp.naissance)+' ans':'',vk(sp.valeur),sp.contrat?'contrat '+sp.contrat:''].filter(Boolean).map(esc).join(' · ')}</small></span>${potChip(sp)}<span style="font-weight:700">Fiche ›</span></div>`:'<div class="labinfo e">Touche un point pour voir le joueur.</div>';
+  const info=sp?`<div class="labinfo" data-nid="${sp.id}">${chip(sp)}<span class="ri"><b>${esc(sp.prenom||'')} ${esc((sp.nom||'').toUpperCase())}</b><small>${[ab(sp.poste),sp.club,sp.champ,age(sp.naissance)!==''?age(sp.naissance)+' ans':'',vk(sp.valeur),sp.contrat?'contrat '+sp.contrat:''].filter(Boolean).map(esc).join(' · ')}</small></span>${potChip(sp)}<span style="font-weight:700">Fiche ›</span></div>`:'';
   return `<div class="labc"><div class="labh"><b>Nuage de points</b><span class="labax"><label>Axe X<select data-lax="lx">${opt(c.lx)}</select></label><label>Axe Y<select data-lax="ly">${opt(c.ly)}</select></label><label>${L10('Taille des points','Point size')}<select data-lax="sz"><option value="">${L10('Identique','Same')}</option>${labPro(c)?`<option value="valeur" ${c.sz==='valeur'?'selected':''}>${L10('Valeur','Value')}</option>`:''}${['age','taille','pot','smatchs','smin','sbuts','spasses','sb90','sbp90'].filter(k=>k!==c.lx&&k!==c.ly||c.sz===k).map(k=>`<option value="${k}" ${c.sz===k?'selected':''}>${esc(LAXE[k][0])}</option>`).join('')}</select></label><label>${L10('Minutes minimum','Minimum minutes')}<select data-lax="mm"><option value="">${L10('Tous','All')}</option>${[200,500,900,1500].map(v=>`<option value="${v}" ${String(c.mm)===String(v)?'selected':''}>≥ ${v} min</option>`).join('')}</select></label></span></div>${pts.length?`<svg viewBox="0 0 ${W} ${H}" class="labsvg">${g}</svg>`:'<div class="rke">Aucun joueur avec ces deux données renseignées.</div>'}<div class="lableg">${['A','B','C','D'].map(k=>`<span><i style="background:${NCOL[k][0]}"></i>${k}</span>`).join('')}<span><i style="background:#9AA5A0"></i>Sans note</span><em>${pts.length} joueur${pts.length>1?'s':''} affiché${pts.length>1?'s':''}${miss?` · ${miss} sans donnée`:''}${hid?` · ${hid} ${L10('masqué'+(hid>1?'s':'')+' (moins de '+c.mm+' min)','hidden (under '+c.mm+' min)')}`:''}${SZ?` · ${L10('Taille','Size')} = ${SZ.A[0]}`:''}</em></div>${info}</div>`}
 const CMPST=['smatchs','smin','smm','sbuts','spasses','sb90','sbp90','scartons'];
 const labPro=c=>!c.cat||c.cat==='Pro';
@@ -937,12 +937,13 @@ async function pbuildCmp(){const c=S.cmp||{ids:[]},ps=(c.ids||[]).map(id=>S.play
   const st=ps.map(cmpStats),w=await pmk(false),nm=p=>((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),tw=w.W-2*w.M,lw=92,cw=(tw-lw)/ps.length;
   phdr(w,'Comparaison','Comparaison de joueurs',ps.map(nm).join('  |  '),'');
   const C=[['',lw,'j'],...ps.map(p=>{let t=nm(p);while(t.length>3&&w.B.widthOfTextAtSize(pcl(t).toUpperCase(),6.8)>cw-10)t=t.slice(0,-2);return[t,cw]})],hd=C.map(x=>x[0]),f1=x=>x==null?'':x.toFixed(1).replace('.',',')+' / 3';
-  const rows=(t,list)=>{psec(w,t);prow(w,C,hd,1);list.forEach(([l,v],i)=>prow(w,C,[l,...v.map(x=>x==null?'':String(x))],0,i%2?'#F6F9F7':'#FFFFFF'))};
-  rows('Profil',[['Note',ps.map(p=>nk(p.note))],['Poste',ps.map(p=>p.poste)],['Club',ps.map(p=>p.club)],['Division',ps.map(p=>p.champ)],['Potentiel',ps.map(p=>(p.potentiel||'').replace('Potentiel ',''))],['Statut',ps.map(p=>p.statut)],['Âge',ps.map(p=>age(p.naissance)!==''?age(p.naissance)+' ans':'')],['Pied',ps.map(p=>p.pied)],['Taille',ps.map(p=>p.taille?p.taille+' cm':'')],['Contrat',ps.map(p=>p.contrat)],['Valeur',ps.map(p=>vk(p.valeur))]]);
+  const best=(vals,hi=true)=>{const m=vals.filter(x=>x!=null);if(m.length<2)return vals.map(()=>false);const t=hi?Math.max(...m):Math.min(...m);return vals.map(x=>x!=null&&x===t&&m.some(y=>y!==t))};
+  const rows=(t,list)=>{psec(w,t);prow(w,C,hd,1);list.forEach(([l,v,b],i)=>prow(w,C,[l,...v.map(x=>x==null?'':String(x))],0,i%2?'#F6F9F7':'#FFFFFF',b?[false,...b]:null))};
+  rows('Profil',[['Note',ps.map(p=>nk(p.note))],['Poste',ps.map(p=>p.poste)],['Club',ps.map(p=>p.club)],['Division',ps.map(p=>p.champ)],['Potentiel',ps.map(p=>(p.potentiel||'').replace('Potentiel ','')),best(ps.map(p=>p.potentiel&&POTC[p.potentiel]?6-Object.keys(POTC).indexOf(p.potentiel):null))],['Statut',ps.map(p=>p.statut),best(ps.map(p=>({'Écarté':0,'À observer':1,'À suivre':2,'Validé':3,'Recruté':4})[p.statut]??null))],['Âge',ps.map(p=>age(p.naissance)!==''?age(p.naissance)+' ans':''),best(ps.map(p=>age(p.naissance)===''?null:+age(p.naissance)),false)],['Pied',ps.map(p=>p.pied)],['Taille',ps.map(p=>p.taille?p.taille+' cm':''),best(ps.map(p=>+p.taille||null))],['Contrat',ps.map(p=>p.contrat),best(ps.map(p=>+p.contrat||null))],['Valeur',ps.map(p=>vk(p.valeur)),best(ps.map(p=>+p.valeur||null))]]);
   const nv=x=>x.niv==null?'':({4:'A',3:'B',2:'C',1:'D'})[Math.round(x.niv)];
-  if(ps.some(p=>stLast(p)))rows(L10('Statistiques','Statistics'),CMPST.map(k=>[LAXE[k][0].replace(/ \((saison|season)\)/,''),ps.map(p=>{const v=LAXE[k][1](p);return v==null?'':LAXE[k][2](v)})]));
+  if(ps.some(p=>stLast(p)))rows(L10('Statistiques','Statistics'),CMPST.map(k=>[LAXE[k][0].replace(/ \((saison|season)\)/,''),ps.map(p=>{const v=LAXE[k][1](p);return v==null?'':LAXE[k][2](v)}),best(ps.map(p=>LAXE[k][1](p)),k!=='scartons')]));
   pRadCmpBand(w,radCmp(ps));
-  rows('Observations',[['Rapports Joueurs',st.map(x=>x.rs||'')],['Rapports Matchs',st.map(x=>x.ms||'')],['Niveau moyen',st.map(nv)],['Technique',st.map(x=>f1(x.t))],['Physique',st.map(x=>f1(x.ph))],['Intelligence',st.map(x=>f1(x.i))],['Attitude',st.map(x=>f1(x.a))]]);
+  rows('Observations',[['Rapports Joueurs',st.map(x=>x.rs||''),best(st.map(x=>x.rs||null))],['Rapports Matchs',st.map(x=>x.ms||''),best(st.map(x=>x.ms||null))],['Niveau moyen',st.map(nv),best(st.map(x=>x.niv))],['Technique',st.map(x=>f1(x.t)),best(st.map(x=>x.t))],['Physique',st.map(x=>f1(x.ph)),best(st.map(x=>x.ph))],['Intelligence',st.map(x=>f1(x.i)),best(st.map(x=>x.i))],['Attitude',st.map(x=>f1(x.a)),best(st.map(x=>x.a))]]);
   if(ps.some(p=>p.forts||p.faibles||p.comment))rows('Avis',[['Points forts',ps.map(p=>p.forts)],['Points faibles',ps.map(p=>p.faibles)],['Commentaires',ps.map(p=>p.comment)]]);
   w.pg.drawText('Observations : moyenne des Rapports Matchs (+ = 1, ++ = 2, +++ = 3).',{x:w.M,y:w.y-8,size:7.5,font:w.F,color:hexc('#6B7C73')});
   pfoot(w,'Talent Radar Scout  |  Comparaison  |  '+new Date().toLocaleDateString('fr-FR'));return w}
@@ -978,8 +979,8 @@ async function pbuildLab(){const c=S.cmp=S.cmp||{poste:'',ids:['','',''],cat:''}
   P().drawText(pcl(X[0]),{x:L0+iw/2-w.B.widthOfTextAtSize(pcl(X[0]),8.5)/2,y:B0-24,size:8.5,font:w.B,color:ink});
   P().drawText(pcl(Yx[0]),{x:w.M+8,y:B0+ih/2-w.B.widthOfTextAtSize(pcl(Yx[0]),8.5)/2,size:8.5,font:w.B,color:ink,rotate:PDFLib.degrees(90)});
   const jit=(i,a)=>{const h=Math.sin((i+1)*(a?12.9898:78.233))*43758.5453;return h-Math.floor(h)-.5},sx=X[3]?iw/(rx[1]-rx[0])*.5:0,sy=Yx[3]?ih/(ry[1]-ry[0])*.5:0;
-  pts.forEach((o,i)=>{const cl=NCOL[nk(o.p.note)]||['#9AA5A0','#FFFFFF'],cx=fx(o.x)+jit(i,1)*sx,cy=fy(o.y)+jit(i,0)*sy;P().drawCircle({x:cx,y:cy,size:(()=>{if(!SZ)return 4.6;const z=SZ.fn(o.p);return z==null?2.6:2.6+5.4*z})(),color:hexc(cl[0]),borderColor:hexc('#1B4332'),borderWidth:.7});
-    const t=String(i+1);P().drawText(t,{x:cx+6,y:cy-2.4,size:6.5,font:w.B,color:ink})});
+  pts.forEach((o,i)=>{const cl=NCOL[nk(o.p.note)]||['#9AA5A0','#FFFFFF'],cx=fx(o.x)+jit(i,1)*sx,cy=fy(o.y)+jit(i,0)*sy;const r=(()=>{if(!SZ)return 7;const z=SZ.fn(o.p);return z==null?5:5.5+5*z})();P().drawCircle({x:cx,y:cy,size:r,color:hexc(cl[0]),borderColor:hexc('#1B4332'),borderWidth:.7});
+    const t=String(i+1),w1=w.B.widthOfTextAtSize(t,1),fs=Math.min(7.5,r*1.7/w1);P().drawText(t,{x:cx-w1*fs/2,y:cy-fs*.34,size:fs,font:w.B,color:hexc(cl[1])})});
   w.y=B0-36;
   const lg=['A','B','C','D'].map(k=>[k,NCOL[k][0]]).concat([['Sans note','#9AA5A0']]);let lx=w.M;lg.forEach(([l,col])=>{P().drawCircle({x:lx+3,y:w.y+2.5,size:3,color:hexc(col),borderColor:hexc('#1B4332'),borderWidth:.5});P().drawText(l,{x:lx+9,y:w.y,size:7,font:w.F,color:mu});lx+=w.F.widthOfTextAtSize(l,7)+22});
   const sm=pts.length+' joueur'+(pts.length>1?'s':'')+' affiché'+(pts.length>1?'s':'')+(miss?' - '+miss+' sans donnée':'');P().drawText(sm,{x:w.W-w.M-w.F.widthOfTextAtSize(sm,7),y:w.y,size:7,font:w.F,color:mu});w.y-=18;
@@ -3247,7 +3248,7 @@ async function pbuildSL(s){const f=s.f,sl=FORM[f],w=await pmk(false),cat=s.cat;
     if(extra)P.drawText('+'+(t.length-5)+' masque(s)',{x:cx+5,y:cy-hh-vis*rh-6,size:6,font:w.F,color:hexc('#A8B8AF')})});
   const tot=sl.reduce((n,_,i)=>n+slPl(s,i).length,0);
   if(!tot){P.drawText('Aucune cible ajoutee pour le moment.',{x:w.M,y:top-ph-14,size:9,font:w.F,color:hexc('#6B7C73')})}
-  else{w.add();const tw=w.W-2*w.M,C=[['Note',32,'n'],['Joueur',128,'j'],['Pot.',34,'c'],['Âge',28,'c'],['Club',0],['Div.',36,'c'],['Contrat',44,'c'],['Valeur',60,'c'],['Statut',72,'c']];C[4][1]=tw-C.filter((c,k)=>k!==4).reduce((n,c)=>n+c[1],0);
+  else{w.add();const tw=w.W-2*w.M,C=[['Note',32,'n'],['Joueur',128,'j'],['Pot.',34,'pt'],['Âge',28,'c'],['Club',0],['Div.',36,'c'],['Contrat',44,'c'],['Valeur',60,'c'],['Statut',72,'st']];C[4][1]=tw-C.filter((c,k)=>k!==4).reduce((n,c)=>n+c[1],0);
     sl.forEach((_,i)=>{const t=slPl(s,i);if(!t.length)return;psec(w,slLab(f,i)+' ('+t.length+' cible'+(t.length>1?'s':'')+')');prow(w,C,C.map(x=>x[0]),1);
       t.forEach((p,k)=>prow(w,C,[p.note,((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),(p.potentiel||'').replace('Potentiel ',''),age(p.naissance),p.club,p.champ,p.contrat,vk(p.valeur),p.statut],0,k%2?'#F6F9F7':'#FFFFFF'));w.y-=12})}
   pfoot(w,'Talent Radar Scout  |  Shortlist '+s.nom+'  |  '+new Date().toLocaleDateString('fr-FR'));return w}
@@ -3318,7 +3319,7 @@ function renderNotes(){afUse('proj');const f=S.nc||'',ps=S.players.filter(p=>!f|
   ${stats}</div>`;
   renderNotes0();const L=$('#list');L.insertAdjacentHTML('afterbegin',dash+scoutStats()+vit+'<h3 class="dbs">Liste complète par note</h3>');
   {let st={};try{st=JSON.parse(localStorage.tr_dbo||'{}')}catch(e){}document.querySelectorAll('#list h3.dbs').forEach(h=>{const key=h.textContent.trim(),w=document.createElement('div');w.className='dbsec';let n=h.nextElementSibling;while(n&&!(n.matches&&n.matches('h3.dbs'))){const nx=n.nextElementSibling;w.appendChild(n);n=nx}h.after(w);const ap=o=>{h.classList.toggle('shut',!o);w.style.display=o?'':'none'};ap(!!st[key]);h.onclick=()=>{st[key]=!st[key];ap(st[key]);try{localStorage.tr_dbo=JSON.stringify(st)}catch(e){}}})}
-  $('#dcf').onchange=e=>{S.nc=e.target.value;renderNotes()};document.querySelectorAll('.dcb button').forEach(b=>b.onclick=()=>{S.nc=S.nc===b.dataset.dc?'':b.dataset.dc;renderNotes()});const keep=fn=>e=>{const sc=document.scrollingElement,y=sc.scrollTop,by=document.body.scrollTop;fn(e.target.value);renderNotes();sc.scrollTop=y;document.body.scrollTop=by};$('#vpr').onchange=keep(v=>S.vp=v);{const f=$('#vfm');if(f)f.onchange=keep(v=>S.vfm=v)}L.insertAdjacentHTML('beforeend','<div class="bar slbar slb3" style="margin-top:14px"><select id="dbpsel" aria-label="Export"><option value="proj">Projection club</option><option value="stats">Statistiques de la base</option><option value="scout">Stats scouting</option><option value="notes">Liste complète par note</option></select><button id="dbpdf">Exporter PDF</button></div>');$('#dbpdf').onclick=()=>pdfDash($('#dbpsel').value).catch(pdfErr);}
+  $('#dcf').onchange=e=>{S.nc=e.target.value;renderNotes()};document.querySelectorAll('.dcb button').forEach(b=>b.onclick=()=>{S.nc=S.nc===b.dataset.dc?'':b.dataset.dc;renderNotes()});const keep=fn=>e=>{const sc=document.scrollingElement,y=sc.scrollTop,by=document.body.scrollTop;fn(e.target.value);renderNotes();sc.scrollTop=y;document.body.scrollTop=by};$('#vpr').onchange=keep(v=>S.vp=v);{const f=$('#vfm');if(f)f.onchange=keep(v=>S.vfm=v)}L.insertAdjacentHTML('beforeend','<div class="bar slbar slb3" style="margin-top:14px"><select id="dbpsel" aria-label="Export"><option value="proj">Projection club</option><option value="stats">Stats base de données</option><option value="scout">Stats scouting</option><option value="notes">Liste complète par note</option></select><button id="dbpdf">Exporter PDF</button></div>');$('#dbpdf').onclick=()=>pdfDash($('#dbpsel').value).catch(pdfErr);}
 const etHtml=(ps,pot,vp)=>{const fm=FORM[S.vfm]?S.vfm:'4-3-3',F=FORM[fm],pool=ps.filter(p=>p.cat!=='Jeune'&&p.statut!=='Écarté'&&afOk(p)&&(!pot||pot.includes(p.potentiel))).sort(rkSort),used=new Set();
   const sl=F.map(([g,x,y])=>{const p=pool.find(q=>!used.has(q.id)&&GR[g].includes(q.poste));if(p)used.add(p.id);return{g,x,y,p}}),n=sl.filter(z=>z.p).length,bench=pool.filter(p=>!used.has(p.id)).slice(0,12);
   const cards=sl.map(({g,x,y,p})=>`<div class="slc"${p?` data-nid="${esc(p.id)}" role="button" tabindex="0"`:''} style="left:${x}%;top:${y}%${p?';cursor:pointer':''}"><div class="h"><span>${GL[g]||g}</span><i>${p?esc((p.potentiel||'').replace('Potentiel ','')):''}</i></div>${p?`<div class="r"><span class="nc" style="${nst(p.note)||'background:rgba(255,255,255,.15)'}">${esc(nk(p.note)||'–')}</span><span class="nn">${esc(p.nom||'')}</span></div>`:'<div class="r e"><span class="nn">—</span></div>'}</div>`).join('');
@@ -3388,18 +3389,24 @@ async function pbuildReport(r){const sp=REP[r.k],g=(i,l)=>String(r.vals[i+'|'+l]
   phdr(w,"Rapport Joueur  -  "+r.k,dispName(g(0,'Joueur observé'))||'Joueur non renseigné',sub,cls);
   {const pt=(Object.entries(r.vals).find(([k])=>k.endsWith('|Potentiel'))||[,''])[1].trim(),st=(Object.entries(r.vals).find(([k])=>k.endsWith('|Statut de suivi'))||[,''])[1].trim(),pg0=w.doc.getPages()[0];let cx=w.W-w.M-(cls?58:0)-(cls?12:0);
     [[st,STC[st]],[pt,POTC[pt]]].forEach(([t0,c])=>{if(!t0||!c)return;const t=pcl(String(t0).replace('Potentiel ','Pot. ')),tw0=w.B.widthOfTextAtSize(t,9)+20;cx-=tw0;pg0.drawRectangle({x:cx,y:w.H-98+22,width:tw0,height:17,color:hexc(c[0]),borderColor:hexc('#FFFFFF'),borderWidth:1.2});pg0.drawText(t,{x:cx+10,y:w.H-98+27.5,size:9,font:w.B,color:hexc(c[1])});cx-=8})}
-  const pcard=(title,items,dark)=>{const pad=10,gap=6,cwid=(w.W-2*w.M-2*pad-2*gap)/3,fw=w.W-2*w.M-2*pad,rows=[];let cur=[];
+  const emoImg=async e=>{try{const c=document.createElement('canvas');c.width=c.height=72;const x=c.getContext('2d');x.font='54px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';x.textBaseline='middle';x.textAlign='center';x.fillText(e,36,40);const d=x.getImageData(0,0,72,72).data;let k=0;for(let q=3;q<d.length;q+=4)if(d[q]>40)k++;if(k<40)return null;return await w.doc.embedPng(c.toDataURL('image/png'))}catch(er){return null}};
+  const SICO=n=>/identif/i.test(n)?'👤':/morpho/i.test(n)?'📏':/poste/i.test(n)?'📍':/physi/i.test(n)?'💪':/techni/i.test(n)?'⚽':/bilan/i.test(n)?'⭐':/tactic|mental|intell/i.test(n)?'🧠':'📋';
+  const pcard=(title,items,dark,icon,cnt)=>{const pad=10,gap=6,cwid=(w.W-2*w.M-2*pad-2*gap)/3,fw=w.W-2*w.M-2*pad,rows=[];let cur=[];
     items.forEach(it=>{if(it.full){if(cur.length)rows.push(cur),cur=[];rows.push([it])}else{cur.push(it);if(cur.length===3)rows.push(cur),cur=[]}});if(cur.length)rows.push(cur);
-    const hdr=(sfx)=>{w.need(34+40);const y0=w.y;w.pg.drawRectangle({x:w.M,y:y0-24,width:w.W-2*w.M,height:24,color:hexc(dark?'#1B4332':'#E4EDE8')});w.pg.drawRectangle({x:w.M,y:y0-24,width:4,height:24,color:hexc(dark?'#52B788':'#40916C')});
-      w.pg.drawText(pcl(title).toUpperCase()+(sfx||''),{x:w.M+14,y:y0-16,size:9,font:w.B,color:hexc(dark?'#FFFFFF':'#1B4332')});w.y=y0-24};
-    hdr('');let first=true;
-    rows.forEach(row=>{const full=row.length===1&&row[0].full,wd=full?fw:cwid,ls=row.map(it=>w.wrap(it.v||'-',w.F,9,wd-(it.bar?20:14))),h=Math.max(...ls.map(l=>l.length))*11.5+26,hh=h+gap;
+    const hdr=(sfx)=>{w.need(34+40);const y0=w.y;w.pg.drawRectangle({x:w.M,y:y0-26,width:w.W-2*w.M,height:26,color:hexc(dark?'#1B4332':'#E4EDE8')});w.pg.drawRectangle({x:w.M,y:y0-26,width:4,height:26,color:hexc(dark?'#52B788':'#40916C')});
+      let tx=w.M+14;if(icon){w.pg.drawImage(icon,{x:tx,y:y0-20,width:14,height:14});tx+=22}
+      w.pg.drawText(pcl(title)+(sfx||''),{x:tx,y:y0-17,size:10,font:w.B,color:hexc(dark?'#FFFFFF':'#1B4332')});
+      if(cnt){const ct=pcl(cnt);w.pg.drawText(ct,{x:w.W-w.M-10-w.F.widthOfTextAtSize(ct,8.5),y:y0-16.5,size:8.5,font:w.F,color:hexc('#6B7C73')})}w.y=y0-26};
+    hdr('');
+    rows.forEach(row=>{const full=row.length===1&&row[0].full,wd=full?fw:cwid,ls=row.map(it=>it.pills?[' ']:w.wrap(it.v||'-',w.F,9,wd-(it.bar?20:14))),h=Math.max(...ls.map(l=>l.length))*11.5+26,hh=h+gap;
       if(w.y-hh<56){w.add();hdr('  (suite)')}
       const y0=w.y;w.pg.drawRectangle({x:w.M,y:y0-hh,width:w.W-2*w.M,height:hh,color:hexc('#FFFFFF'),borderColor:hexc('#DCE5DF'),borderWidth:.6});
       row.forEach((it,k)=>{const x=w.M+pad+k*(cwid+gap),wx=full?fw:cwid;w.pg.drawRectangle({x,y:y0-gap/2-h,width:wx,height:h,color:hexc(it.bg||'#F4F7F5')});
         if(it.bar)w.pg.drawRectangle({x,y:y0-gap/2-h,width:4,height:h,color:hexc(it.bar)});const ox=x+(it.bar?12:8);
-        w.pg.drawText(pcl(it.l).toUpperCase(),{x:ox,y:y0-gap/2-12,size:6.5,font:w.B,color:hexc(it.bar||'#6B7C73')});
-        ls[k].forEach((t,q)=>w.pg.drawText(t,{x:ox,y:y0-gap/2-24-q*11.5,size:9,font:w.F,color:it.v?hexc('#22302B'):hexc('#B4BFB8')}))});
+        {let lt=pcl(it.l).toUpperCase();const mw=wx-(ox-x)-8-(it.rt!=null?46:0);while(lt.length>3&&w.B.widthOfTextAtSize(lt,6.5)>mw)lt=lt.slice(0,-2);if(lt!==pcl(it.l).toUpperCase())lt=lt.trim()+'..';w.pg.drawText(lt,{x:ox,y:y0-gap/2-12,size:6.5,font:w.B,color:hexc(it.bar||'#6B7C73')})}
+        if(it.rt!=null){for(let q=1;q<=5;q++){const cx=x+wx-10-(5-q)*7.5-2.5;w.pg.drawCircle({x:cx,y:y0-gap/2-9.5,size:2.5,color:q<=it.rt?hexc('#2E9E5B'):hexc('#FFFFFF'),borderColor:hexc(q<=it.rt?'#2E9E5B':'#B4BFB8'),borderWidth:.8})}}
+        if(it.pills){let px=ox;it.pills.forEach(([lb,t0,bg,fg])=>{const t=pcl(t0),wp=w.B.widthOfTextAtSize(t,8.5)+16,lw=w.F.widthOfTextAtSize(pcl(lb),7)+4;w.pg.drawText(pcl(lb),{x:px,y:y0-gap/2-27,size:7,font:w.F,color:hexc('#6B7C73')});px+=lw;w.pg.drawRectangle({x:px,y:y0-gap/2-31,width:wp,height:16,color:hexc(bg)});w.pg.drawText(t,{x:px+8,y:y0-gap/2-26.5,size:8.5,font:w.B,color:hexc(fg)});px+=wp+14})}
+        else ls[k].forEach((t,q)=>w.pg.drawText(t,{x:ox,y:y0-gap/2-24-q*11.5,size:9,font:w.F,color:it.v?hexc('#22302B'):hexc('#B4BFB8')}))});
       w.y=y0-hh});
     w.y-=14};
   const f=x=>String((Object.entries(r.vals).find(([k])=>k.endsWith('|'+x))||[,''])[1]||'').trim(),pl=r.pid&&S.players.find(x=>x.id===r.pid),tw=w.W-2*w.M;
@@ -3407,19 +3414,26 @@ async function pbuildReport(r){const sp=REP[r.k],g=(i,l)=>String(r.vals[i+'|'+l]
   {const b0=f('Date de naissance'),bd=/^\d{4}-\d{2}-\d{2}$/.test(b0)?pfd(b0)+(age(b0)!==''?'  ('+age(b0)+' ans)':''):b0,tp=f('Taille (cm)'),ps=f('Poids (kg)');
     const kv=[[L10('Club','Club'),f('Équipe')||(pl&&pl.club)||''],[L10('Poste','Position'),[f('Poste principal'),f('Poste secondaire')].filter(Boolean).join(' / ')],[L10('Naissance','Born'),bd],[L10('Taille / poids','Height / weight'),[tp&&tp+' cm',ps&&ps+' kg'].filter(Boolean).join(' / ')],[L10('Pied fort','Strong foot'),f('Pied fort')],[L10('Contact','Contact'),f('Contact')]].filter(x=>x[1]);
     const ph=photo?84:0,gx=w.M+(ph?ph+16:0),cwk=(tw-(ph?ph+16:0))/3,rows=Math.ceil(kv.length/3),bh=Math.max(ph,rows*36)+2;
-    if(kv.length||photo){const y0=w.y;
+    if(photo){const y0=w.y;
       if(photo)w.pg.drawImage(photo,{x:w.M,y:y0-ph,width:ph,height:ph});
       kv.forEach(([l,v],k)=>{const x=gx+(k%3)*cwk,y=y0-Math.floor(k/3)*36;let t=pcl(v);while(t.length>3&&w.B.widthOfTextAtSize(t,10)>cwk-8)t=t.slice(0,-2);if(t!==pcl(v))t+='...';
         w.pg.drawText(pcl(l).toUpperCase(),{x,y:y-8,size:6.5,font:w.B,color:hexc('#6B7C73')});w.pg.drawText(t,{x,y:y-22,size:10,font:w.B,color:hexc('#22302B')})});
       w.y=y0-bh-12}}
   {const vv={};Object.entries(r.vals).forEach(([k,v])=>{if(/#n$/.test(k))vv[k]=v});pRadBand(w,radGroups(vv,r.k))}
-  const bil=re=>{for(let i=0;i<sp.s.length;i++){const l=sp.s[i][1].find(x=>re.test(x));if(l&&g(i,l))return g(i,l)}return''},pf=bil(/^points forts/i),pw=bil(/^points faibles/i),prof=bil(/^description/i),pre=bil(/^prestation/i),prj=bil(/^projection/i);
-  if(pf||pw){psec(w,L10('Points clés','Key points'));const two=pf&&pw,wd=two?(tw-10)/2:tw,h=Math.max(pf?pboxH(w,wd,pf):0,pw?pboxH(w,wd,pw):0);w.need(h+8);const y0=w.y;let x=w.M;
-    if(pf){pbox(w,x,y0,wd,L10('Points forts','Strengths'),pf,'#2E9E5B','#E3F4EA',h);x+=wd+10}if(pw)pbox(w,x,y0,wd,L10('Points faibles','Weaknesses'),pw,'#D32F2F','#FBE9E7',h);w.y=y0-h-12}
-  [[L10('Profil du joueur','Player profile'),prof],[L10('Prestation sur le match','Match performance'),pre],[L10('Projection','Projection'),prj]].forEach(([lab,t])=>{if(!t)return;const h=pboxH(w,tw,t);w.need(h+10);const y0=w.y;pbox(w,w.M,y0,tw,lab,t,'#40916C','#F4F7F5',h);w.y=y0-h-8});
-  let first=true;
-  sp.s.forEach(([n,ls],i)=>{if(i===0||/^Bilan/i.test(n)||n==='Caractéristiques')return;const att=/^Attributs/.test(n),items=ls.map(l=>{const rt=att?+r.vals[i+'|'+l+'#n']||0:0;return{l:l+(rt?'  ['+rt+'/5]':''),v:g(i,l),rt,full:/utilisation|déplacements|poste/i.test(l)&&!/^poste (principal|secondaire)$/i.test(l)}}).filter(x=>(x.v||x.rt)&&!/^(Taille \(cm\)|Poids \(kg\)|Pied fort|Poste principal|Poste secondaire)/.test(x.l));if(!items.length)return;
-    if(first){first=false;w.add();psec(w,L10('Détail du rapport','Report details'))}pcard(n,items,0)});
+  {const dateF=l=>/^date/i.test(l),big=/prestation|points|description|utilisation|placements|projection|^type$/i.test;
+    for(let i=0;i<sp.s.length;i++){const [n,ls]=sp.s[i];if(n==='Caractéristiques')continue;const att=/^Attributs/.test(n),hasCl=ls.includes('Classification du joueur'),items=[];let tot=0;
+      for(const l of ls){tot++;const key=i+'|'+l,v=String(r.vals[key]??'').trim(),rt=att?(+r.vals[key+'#n']||0):0;
+        if(l==='Classification du joueur'){tot+=2;const nt=v,pt=String(r.vals[i+'|Potentiel']??'').trim(),st=String(r.vals[i+'|Statut de suivi']??'').trim(),pills=[];
+          if(nt&&NCOL[nk(nt)])pills.push(['Note  ',nt,NCOL[nk(nt)][0],NCOL[nk(nt)][1]]);if(pt&&POTC[pt])pills.push(['Potentiel  ',pt.replace('Potentiel ',''),POTC[pt][0],POTC[pt][1]]);if(st&&STC[st])pills.push(['Statut  ',st,STC[st][0],STC[st][1]]);
+          if(pills.length)items.push({l:'Classification',pills,full:1});continue}
+        if(hasCl&&(l==='Potentiel'||l==='Statut de suivi')){tot--;continue}
+        if(l==='Match'){tot++;const cp=String(r.vals[i+'|Compétition']??'').trim();if(v)items.push({l:'Match',v});if(cp)items.push({l:'Compétition',v:cp});continue}
+        if(!v&&!rt)continue;
+        const bg=/^points forts/i.test(l)?'#E3F4EA':/^points faibles/i.test(l)?'#FBE9E7':null,bar=/^points forts/i.test(l)?'#2E9E5B':/^points faibles/i.test(l)?'#D32F2F':null;
+        items.push({l,v:dateF(l)&&/^\d{4}-\d{2}-\d{2}$/.test(v)?pfd(v):(l==='Joueur observé'?dispName(v):v),rt:att?rt:null,full:/prestation|points|description|utilisation|placements|projection|^type$|^joueur observé$|^lieu de la rencontre$|déplacements/i.test(l),bg,bar})}
+      if(!items.length)continue;
+      const filled=ls.filter(l=>String(r.vals[i+'|'+l]??'').trim()||(att&&+r.vals[i+'|'+l+'#n'])).length;
+      await pcard(n,items,0,await emoImg(SICO(n)),filled+' / '+tot)}}
   pfoot(w,'Talent Radar Scout  |  Rapport Joueur  |  '+new Date().toLocaleDateString('fr-FR'));return w}
 async function pbuildMatch(m){const w=await pmk(true),tw=w.W-2*w.M;
   const C=[['N°',28],['Joueur',138],['Note',36],['Tech',38],['Phys',38],['Intel',38],['Att',36],['Pied fort',54],['Analyses',0]];C[8][1]=tw-C.slice(0,8).reduce((s,c)=>s+c[1],0);
@@ -3509,26 +3523,46 @@ if($('#fs'))$('#fs').onchange=e=>{S.fs=e.target.value;render()};
 const ag=p=>{const x=age(p.naissance);return x===''?999:x};
 const pr=p=>{const i=Object.keys(POTC).indexOf(p.potentiel);return i<0?99:i};
 const ordP=(a,b)=>sc(b.note)-sc(a.note)||pr(a)-pr(b)||ag(a)-ag(b)||(a.nom||'').localeCompare(b.nom||'');
-function prow(w,cols,vals,hd,fill){const tw=w.W-2*w.M,ls=vals.map((v,k)=>cols[k][2]==='c'||cols[k][2]==='n'?[pcl(v)]:w.wrap(v||'',cols[k][2]==='j'?w.B:w.F,8.5,cols[k][1]-10));
+function prow(w,cols,vals,hd,fill,hl){const tw=w.W-2*w.M,ls=vals.map((v,k)=>cols[k][2]==='c'||cols[k][2]==='n'||cols[k][2]==='pt'||cols[k][2]==='st'||cols[k][2]==='pp'?[pcl(v)]:w.wrap(v||'',cols[k][2]==='j'?w.B:w.F,8.5,cols[k][1]-10));
   const h=hd?19:Math.max(...ls.map(a=>a.length),1)*10.5+9;w.need(h+2);
-  w.pg.drawRectangle({x:w.M,y:w.y-h,width:tw,height:h,color:hexc(hd?'#E4EDE8':fill)});let x=w.M;
+  w.pg.drawRectangle({x:w.M,y:w.y-h,width:tw,height:h,color:hexc(hd?'#E4EDE8':fill)});let x=w.M;if(hl){let xx=w.M;cols.forEach((c,k)=>{if(hl[k])w.pg.drawRectangle({x:xx+1,y:w.y-h+1,width:c[1]-2,height:h-2,color:hexc('#D8EEDF')});xx+=c[1]})}
   cols.forEach((c,k)=>{const v=vals[k],t=pcl(v);
-    if(hd){const u=pcl(c[0]).toUpperCase();w.pg.drawText(u,{x:x+(c[2]==='c'||c[2]==='n'?c[1]/2-w.B.widthOfTextAtSize(u,6.8)/2:6),y:w.y-12.5,size:6.8,font:w.B,color:hexc('#4A5D53')})}
+    if(hd){const u=pcl(c[0]).toUpperCase();w.pg.drawText(u,{x:x+(c[2]==='c'||c[2]==='n'||c[2]==='pt'||c[2]==='st'||c[2]==='pp'?c[1]/2-w.B.widthOfTextAtSize(u,6.8)/2:6),y:w.y-12.5,size:6.8,font:w.B,color:hexc('#4A5D53')})}
     else if(c[2]==='n'){const col=NCOL[nk(v)];if(col){w.pg.drawRectangle({x,y:w.y-h,width:c[1],height:h,color:hexc(col[0])});w.pg.drawText(t,{x:x+c[1]/2-w.B.widthOfTextAtSize(t,10)/2,y:w.y-h/2-3.5,size:10,font:w.B,color:hexc(col[1])})}}
+    else if(c[2]==='pp'){const PCc={g:'#D98A1F',d:'#1F4E8C',m:'#0E7C86',a:'#B5443B',x:'#6B7280'},lb=pcl(ab(v)||v);if(lb){const pw=Math.max(26,w.B.widthOfTextAtSize(lb,7.5)+12);w.pg.drawRectangle({x:x+c[1]/2-pw/2,y:w.y-h/2-7,width:pw,height:14,color:hexc(PCc[plcl(v)]||'#6B7280')});w.pg.drawText(lb,{x:x+c[1]/2-w.B.widthOfTextAtSize(lb,7.5)/2,y:w.y-h/2-2.6,size:7.5,font:w.B,color:hexc('#FFFFFF')})}}
+    else if(c[2]==='pt'||c[2]==='st'){const sc=c[2]==='pt'?(POTC[v]||POTC['Potentiel '+v]):STC[v];if(sc&&t){let tt=t;const mw=c[1]-4;while(tt.length>3&&w.B.widthOfTextAtSize(tt,7.2)+10>mw)tt=tt.slice(0,-2);const pw=Math.max(c[2]==='pt'?26:0,w.B.widthOfTextAtSize(tt,7.2)+10);w.pg.drawRectangle({x:x+c[1]/2-pw/2,y:w.y-h/2-7,width:pw,height:14,color:hexc(sc[0])});w.pg.drawText(tt,{x:x+c[1]/2-w.B.widthOfTextAtSize(tt,7.2)/2,y:w.y-h/2-2.5,size:7.2,font:w.B,color:hexc(sc[1])})}}
     else if(c[2]==='c')w.pg.drawText(t,{x:x+c[1]/2-w.F.widthOfTextAtSize(t,8.5)/2,y:w.y-h/2-3,size:8.5,font:w.F,color:hexc('#22302B')});
-    else ls[k].forEach((tt,j)=>w.pg.drawText(tt,{x:x+6,y:w.y-11-j*10.5,size:8.5,font:c[2]==='j'?w.B:w.F,color:hexc('#22302B')}));
+    else ls[k].forEach((tt,j)=>w.pg.drawText(tt,{x:x+6,y:w.y-11-j*10.5,size:8.5,font:c[2]==='j'||(hl&&hl[k])?w.B:w.F,color:hexc('#22302B')}));
     x+=c[1]});
   w.pg.drawLine({start:{x:w.M,y:w.y-h},end:{x:w.M+tw,y:w.y-h},thickness:.4,color:hexc('#DCE5DF')});w.y-=h}
 async function pbuildList(cat){const w=await pmk(true),tw=w.W-2*w.M,sai=S.saison==='all'?'Toutes les saisons':'Saison '+S.saison,pro=cat==='Pro',
   pl=S.players.filter(p=>p.cat===cat&&(S.saison==='all'||p.saison===S.saison));
   if(!pl.length)throw new Error('Aucun joueur dans cette catégorie pour la saison choisie.');
-  const C=pro?[['Note',34,'n'],['Joueur',150,'j'],['Âge',30,'c'],['Pied',46,'c'],['Club',112],['Championnat',78],['Contrat',46,'c'],['Valeur',72,'c'],['Points forts',0]]
-    :[['Note',34,'n'],['Joueur',150,'j'],['Âge',30,'c'],['Pied',46,'c'],...(cat==='Jeune'?[]:[['Taille',42,'c']]),['Club',122],['Championnat',86],['Points forts',0]];
-  C[C.length-1][1]=tw-C.slice(0,-1).reduce((s,c)=>s+c[1],0);
-  const val=(p,k)=>({Note:p.note,Joueur:((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),Âge:age(p.naissance),Pied:p.pied,Taille:p.taille?p.taille+' cm':'',Club:p.club,Championnat:p.champ,Contrat:p.contrat,Valeur:p.valeur?String(p.valeur).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' €':'','Points forts':p.forts}[k]??'');
+  const PC={g:'#D98A1F',d:'#1F4E8C',m:'#0E7C86',a:'#B5443B',x:'#6B7280'},money=v=>v?String(v).replace(/\B(?=(\d{3})+(?!\d))/g,' ')+' €':'';
+  const hasCt=cat==='Pro'||cat==='Amateur',C=[['Note',30,'n'],['Joueur',124,'j'],['Poste',44,'pp'],['Âge',28,'c'],['Pied',40,'c'],['Club',102],['Division',66],...(hasCt?[['Contrat',42,'c']]:[]),['Commentaires',0],['Potentiel',48,'pt'],['Statut',64,'st']];
+  const ci=C.findIndex(c=>c[0]==='Commentaires');C[ci][1]=tw-C.reduce((n,c,k)=>k===ci?n:n+c[1],0);
+  const HC=C.map(c=>[c[0],c[1],c[2]==='pp'||c[2]==='pt'||c[2]==='st'?'c':c[2]]);
+  const val=(p,k)=>({Note:p.note,Joueur:((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),Poste:ab(p.poste),Âge:age(p.naissance),Pied:p.pied,Taille:p.taille?p.taille+' cm':'',Club:p.club,Division:p.champ,Potentiel:(p.potentiel||'').replace('Potentiel ',''),Contrat:p.contrat,Valeur:money(p.valeur),Commentaires:p.comment,Statut:p.statut}[k]??'');
+  const hdr=()=>prow(w,HC,HC.map(c=>c[0]),1);
+  const row=(p,i)=>{const vs=C.map(c=>val(p,c[0])),ls=C.map((c,k)=>c[2]==='n'||c[2]==='c'||c[2]==='pp'||c[2]==='pt'||c[2]==='st'?[pcl(vs[k])]:w.wrap(vs[k]||'',c[2]==='j'?w.B:w.F,8.3,c[1]-10).slice(0,6));
+    const h=Math.max(24,Math.max(...ls.map(a=>a.length))*10.2+10);if(w.y-h<50){w.add();hdr()}
+    const P=w.pg;P.drawRectangle({x:w.M,y:w.y-h,width:tw,height:h,color:hexc(i%2?'#F6F9F7':'#FFFFFF')});let x=w.M;
+    C.forEach((c,k)=>{const v=vs[k],t=pcl(v),cy=w.y-h/2;
+      if(c[2]==='n'){const col=NCOL[nk(v)];if(col){P.drawRectangle({x,y:w.y-h,width:c[1],height:h,color:hexc(col[0])});P.drawText(t,{x:x+c[1]/2-w.B.widthOfTextAtSize(t,10)/2,y:cy-3.5,size:10,font:w.B,color:hexc(col[1])})}}
+      else if(c[2]==='pp'){const bg=PC[plcl(p.poste)]||'#6B7280',pw=Math.max(26,w.B.widthOfTextAtSize(t,7.5)+12);P.drawRectangle({x:x+c[1]/2-pw/2,y:cy-7,width:pw,height:14,color:hexc(bg)});P.drawText(t,{x:x+c[1]/2-w.B.widthOfTextAtSize(t,7.5)/2,y:cy-2.6,size:7.5,font:w.B,color:hexc('#FFFFFF')})}
+      else if(c[2]==='pt'){const pc=POTC[p.potentiel];if(pc&&t){const pw=Math.max(26,w.B.widthOfTextAtSize(t,7.5)+12);P.drawRectangle({x:x+c[1]/2-pw/2,y:cy-7,width:pw,height:14,color:hexc(pc[0])});P.drawText(t,{x:x+c[1]/2-w.B.widthOfTextAtSize(t,7.5)/2,y:cy-2.6,size:7.5,font:w.B,color:hexc(pc[1])})}}
+      else if(c[2]==='st'){const sc=STC[p.statut];if(sc&&t){let tt=t;while(tt.length>3&&w.B.widthOfTextAtSize(tt,7)+10>c[1]-4)tt=tt.slice(0,-2);const pw=w.B.widthOfTextAtSize(tt,7)+10;P.drawRectangle({x:x+c[1]/2-pw/2,y:cy-7,width:pw,height:14,color:hexc(sc[0])});P.drawText(tt,{x:x+c[1]/2-pw/2+5,y:cy-2.4,size:7,font:w.B,color:hexc(sc[1])})}}
+      else if(c[2]==='c')P.drawText(t,{x:x+c[1]/2-w.F.widthOfTextAtSize(t,8.5)/2,y:cy-3,size:8.5,font:w.F,color:hexc('#22302B')});
+      else{const bl=c[2]==='j',n=ls[k].length,y0=cy+(n-1)*5.1-3;ls[k].forEach((tt,j)=>P.drawText(tt,{x:x+6,y:y0-j*10.2,size:bl?8.8:8.3,font:bl?w.B:w.F,color:hexc(k===C.length-1?'#3D4F46':'#22302B')}))}
+      x+=c[1]});
+    P.drawLine({start:{x:w.M,y:w.y-h},end:{x:w.M+tw,y:w.y-h},thickness:.4,color:hexc('#DCE5DF')});w.y-=h};
   phdr(w,'Liste des joueurs','Joueurs '+CATLBL[cat],sai+'   |   '+pl.length+' joueur'+(pl.length>1?'s':''),'');
-  POSTES.forEach(po=>{const l=pl.filter(p=>p.poste===po).sort(ordP);if(!l.length)return;
-    w.need(80);psec(w,po+' ('+l.length+')');prow(w,C,C.map(c=>c[0]),1);l.forEach((p,i)=>prow(w,C,C.map(c=>val(p,c[0])),0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12});
+  w.y-=6;hdr();
+  const band=(po,n)=>{if(w.y-(24+34)<50){w.add();hdr()}const P=w.pg,y0=w.y,t=pcl(po.toUpperCase()+' ('+n+')');P.drawRectangle({x:w.M,y:y0-24,width:tw,height:24,color:hexc('#E4EDE8')});
+    P.drawLine({start:{x:w.M,y:y0},end:{x:w.M+tw,y:y0},thickness:.5,color:hexc('#C9D8CF')});P.drawLine({start:{x:w.M,y:y0-24},end:{x:w.M+tw,y:y0-24},thickness:.5,color:hexc('#C9D8CF')});
+    const sp=1.4,wd=[...t].reduce((a,ch)=>a+w.B.widthOfTextAtSize(ch,10.5)+sp,-sp);let x=w.M+tw/2-wd/2;[...t].forEach(ch=>{P.drawText(ch,{x,y:y0-16,size:10.5,font:w.B,color:hexc('#2D6A4F')});x+=w.B.widthOfTextAtSize(ch,10.5)+sp});w.y-=24};
+  POSTES.forEach(po=>{const l=pl.filter(p=>p.poste===po).sort(ordP);if(!l.length)return;band(po,l.length);l.forEach((p,i)=>row(p,i))});
+  {const o=pl.filter(p=>!POSTES.includes(p.poste)).sort(ordP);if(o.length){band('Autres',o.length);o.forEach((p,i)=>row(p,i))}}
   pfoot(w,'Talent Radar Scout  |  Liste des joueurs '+CATLBL[cat]+'  |  '+new Date().toLocaleDateString('fr-FR'));return w}
 /* ---- Export PDF du Tableau de bord ---- */
 const PRJ0={'LDC':['Potentiel LDC','Potentiel L1'],'L1':['Potentiel LDC','Potentiel L1','Potentiel L2'],'L2':['Potentiel L2','Potentiel L3'],'L3':['Potentiel L3','Potentiel N1'],'N1':['Potentiel N1','Potentiel N2']};
@@ -3536,7 +3570,7 @@ async function pbuildProj(){const f=S.nc||'',vp=S.vp||'',ps=S.players.filter(p=>
   const pool=ps.filter(p=>p.cat!=='Jeune'&&p.statut!=='Écarté'&&afOk(p)&&(!pot||pot.includes(p.potentiel))).sort(rkSort),used=new Set();
   const sl=F.map(([g,x,y])=>{const p=pool.find(q=>!used.has(q.id)&&GR[g].includes(q.poste));if(p)used.add(p.id);return{g,x,y,p}}),bench=pool.filter(p=>!used.has(p.id)).slice(0,12),n=sl.filter(z=>z.p).length;
   const w=await pmk(false);phdr(w,'Projection club','Équipe type'+(vp?' · Club '+vp:''),'Schéma '+fm+'   |   '+n+'/11 postes pourvus   |   '+(f?CATLBL[f]:'Toutes catégories'),'');
-  const pw=380,ph=Math.round(pw*1.22),px=(w.W-pw)/2,top=w.y,P=w.pg,wh=hexc('#FFFFFF');
+  const pw=470,ph=Math.round(pw*1.22),px=(w.W-pw)/2,top=w.y,P=w.pg,wh=hexc('#FFFFFF');
   P.drawRectangle({x:px,y:top-ph,width:pw,height:ph,color:hexc('#2F7D4F')});
   for(let i=1;i<8;i+=2)P.drawRectangle({x:px,y:top-(i+1)*ph/8,width:pw,height:ph/8,color:hexc('#2A7048')});
   const ln={borderColor:wh,borderWidth:1.1,borderOpacity:.55};
@@ -3549,42 +3583,111 @@ async function pbuildProj(){const f=S.nc||'',vp=S.vp||'',ps=S.players.filter(p=>
     P.drawText(lb,{x:cx-w.B.widthOfTextAtSize(lb,7.5)/2,y:cy-2.7,size:7.5,font:w.B,color:hexc(col[1])});
     if(p){let t=pcl((p.nom||'')+(nk(p.note)?'  '+nk(p.note):''));while(t.length>3&&w.B.widthOfTextAtSize(t,7)>84)t=t.slice(0,-2);const tw=w.B.widthOfTextAtSize(t,7)+10;
       P.drawRectangle({x:cx-tw/2,y:cy-27,width:tw,height:12,color:hexc('#14261E'),opacity:.78});P.drawText(t,{x:cx-tw/2+5,y:cy-23.5,size:7,font:w.B,color:wh})}});
-  w.y=top-ph-24;
-  const tw=w.W-2*w.M,C=[['Poste',40,'c'],['Note',34,'n'],['Joueur',150,'j'],['Pot.',40,'c'],['Âge',34,'c'],['Club',0],['Div.',50,'c'],['Statut',64,'c']];C[5][1]=tw-C.filter((x,k)=>k!==5).reduce((a,x)=>a+x[1],0);
-  const row=(lab,p,i)=>[lab,p.note,((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),(p.potentiel||'').replace('Potentiel ',''),age(p.naissance),p.club,p.champ,p.statut];
+  w.add();
+  const tw=w.W-2*w.M,C=[['Poste',44,'pp'],['Note',34,'n'],['Joueur',150,'j'],['Pot.',40,'pt'],['Âge',34,'c'],['Club',0],['Div.',50,'c'],['Statut',64,'st']];C[5][1]=tw-C.filter((x,k)=>k!==5).reduce((a,x)=>a+x[1],0);
+  const row=(lab,p,i)=>[p.poste,p.note,((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),(p.potentiel||'').replace('Potentiel ',''),age(p.naissance),p.club,p.champ,p.statut];
   psec(w,'Équipe type ('+n+'/11)');prow(w,C,C.map(x=>x[0]),1);
-  sl.filter(z=>z.p).forEach(({g,p},i)=>prow(w,C,row(GL[g]||g,p),0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12;
-  if(bench.length){psec(w,'Remplaçants ('+bench.length+')');prow(w,C,C.map(x=>x[0]),1);bench.forEach((p,i)=>prow(w,C,row(ab(p.poste),p),0,i%2?'#F6F9F7':'#FFFFFF'))}
+  const po0=q=>{const k=POSTES.indexOf(q.poste);return k<0?99:k};sl.filter(z=>z.p).map((z,k)=>({...z,k})).sort((a,b)=>po0(a.p)-po0(b.p)||a.k-b.k).forEach(({g,p},i)=>prow(w,C,row(GL[g]||g,p),0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12;
+  if(bench.length){psec(w,'Remplaçants ('+bench.length+')');prow(w,C,C.map(x=>x[0]),1);bench.map((p,k)=>({p,k})).sort((a,b)=>po0(a.p)-po0(b.p)||a.k-b.k).forEach(({p},i)=>prow(w,C,row(ab(p.poste),p),0,i%2?'#F6F9F7':'#FFFFFF'))}
   pfoot(w,'Talent Radar Scout  |  Projection club'+(vp?' '+vp:'')+'  |  '+new Date().toLocaleDateString('fr-FR'));return w}
-async function pbuildDbStats(){const f=S.nc||'',ps=S.players.filter(p=>!f||p.cat===f),w=await pmk(false),tw=w.W-2*w.M;
-  phdr(w,'Tableau de bord','Statistiques de la base',(f?CATLBL[f]:'Toutes catégories')+'   |   '+ps.length+' joueurs','');
-  const C=[['',0],['Joueurs',70,'c'],['%',60,'c']];C[0][1]=tw-130;
-  const blk=(t,rows)=>{psec(w,t);prow(w,C,[t.split(' (')[0],'Joueurs','%'],1);rows.forEach(([l,n],i)=>prow(w,C,[l,n,ps.length?Math.round(n/ps.length*100)+' %':''],0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12};
-  const clubs=new Set(ps.map(p=>String(p.club||'').trim().toLowerCase()).filter(Boolean)).size;
-  blk('Chiffres clés',[['Joueurs',ps.length],['Clubs différents',clubs],['Notés A',ps.filter(p=>nk(p.note)==='A').length]]);
-  blk('Répartition des notes',['A','B','C','D'].map(k=>['Note '+k,ps.filter(p=>nk(p.note)===k).length]).concat([['Sans note',ps.filter(p=>!nk(p.note)).length]]));
-  blk('Répartition du potentiel',Object.keys(POTC).map(k=>[k.replace('Potentiel ',''),ps.filter(p=>p.potentiel===k).length]).concat([['Aucun',ps.filter(p=>!POTC[p.potentiel]).length]]));
-  const ST=['À observer','À suivre','Validé','Écarté','Recruté'];
-  blk('Statuts de suivi',ST.map(k=>[k,ps.filter(p=>p.statut===k).length]).concat([['Sans statut',ps.filter(p=>!ST.includes(p.statut)).length]]));
-  const dv={};ps.forEach(p=>{const k=p.champ||'Non renseigné';dv[k]=(dv[k]||0)+1});blk('Répartition par division',Object.entries(dv).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])));
-  const C2=[['Poste',0],['A',44,'c'],['B',44,'c'],['Autres',54,'c'],['Total',54,'c']];C2[0][1]=tw-196;
-  psec(w,'Couverture par poste');prow(w,C2,C2.map(x=>x[0]),1);
-  POSTES.forEach((po,i)=>{const l=ps.filter(p=>p.poste===po),a=l.filter(p=>nk(p.note)==='A').length,b=l.filter(p=>nk(p.note)==='B').length;prow(w,C2,[po,a,b,l.length-a-b,l.length],0,i%2?'#F6F9F7':'#FFFFFF')});
-  pfoot(w,'Talent Radar Scout  |  Statistiques de la base  |  '+new Date().toLocaleDateString('fr-FR'));return w}
-async function pbuildScoutStats(){scoutStats();const d=window._ss,w=await pmk(false),tw=w.W-2*w.M,MN=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
+const PCG={g:'#D98A1F',d:'#1F4E8C',m:'#0E7C86',a:'#B5443B',x:'#6B7280'};
+function ptrunc(w,t,f,s,mw){t=pcl(String(t==null?'':t));if(f.widthOfTextAtSize(t,s)<=mw)return t;while(t.length>1&&f.widthOfTextAtSize(t+'...',s)>mw)t=t.slice(0,-1);return t+'...'}
+/* carte PDF façon PC : titre + pastille compteur, sous-titre, corps */
+function pcardG(w,cw,title,cnt,sub,bodyH,body){const hh=sub?42:28;return{h:hh+bodyH+10,draw:(x,y,H2)=>{const p=w.pg,h=H2||hh+bodyH+10;
+  p.drawRectangle({x,y:y-h,width:cw,height:h,color:hexc('#FFFFFF'),borderColor:hexc('#DCE5DF'),borderWidth:.8});
+  p.drawText(ptrunc(w,title,w.B,10,cw-60),{x:x+10,y:y-18,size:10,font:w.B,color:hexc('#1B4332')});
+  if(cnt!=null&&cnt!==''){const c=pcl(String(cnt)),pw=Math.max(20,w.B.widthOfTextAtSize(c,7.5)+12);p.drawRectangle({x:x+cw-10-pw,y:y-23,width:pw,height:15,color:hexc('#E6F2EA')});p.drawText(c,{x:x+cw-10-pw/2-w.B.widthOfTextAtSize(c,7.5)/2,y:y-18.5,size:7.5,font:w.B,color:hexc('#1B4332')})}
+  if(sub)p.drawText(ptrunc(w,sub,w.F,8,cw-20),{x:x+10,y:y-31,size:8,font:w.F,color:hexc('#6B7C73')});
+  body(x+10,y-hh,cw-20)}}}
+function pgridG(w,cards,cw,gap){for(let i=0;i<cards.length;i+=2){const a=cards[i],b=cards[i+1],h=Math.max(a.h,b?b.h:0);w.need(h+8);const y=w.y;a.draw(w.M,y,h);if(b)b.draw(w.M+cw+gap,y,h);w.y-=h+10}}
+/* lignes de barres horizontales (label, barre, nombre, %) */
+function pbarsG(w,items,tot,lw){const RH=15;return{h:items.length*RH,body:(x,y,bw)=>{const p=w.pg,mx=Math.max(1,...items.map(i=>i[1])),tx=x+lw+4,tw=bw-lw-4-52;
+  items.forEach(([l,n,bg],i)=>{const ry=y-i*RH;p.drawText(ptrunc(w,l,w.F,8.5,lw),{x,y:ry-10,size:8.5,font:w.F,color:hexc('#22302B')});
+    p.drawRectangle({x:tx,y:ry-11,width:tw,height:7,color:hexc('#EEF3EF')});if(n)p.drawRectangle({x:tx,y:ry-11,width:Math.max(3,n/mx*tw),height:7,color:hexc(bg)});
+    const ns=String(n),pc=(tot?Math.round(n/tot*100):0)+'%';p.drawText(pc,{x:x+bw-w.F.widthOfTextAtSize(pc,7.5),y:ry-10,size:7.5,font:w.F,color:hexc('#6B7C73')});
+    p.drawText(ns,{x:x+bw-26-w.B.widthOfTextAtSize(ns,8.5),y:ry-10,size:8.5,font:w.B,color:hexc('#1B4332')})})}}}
+function pkpiG(w,items){const g=8,tw=(w.W-2*w.M-g*(items.length-1))/items.length,h=52;w.need(h+10);const p=w.pg;
+  items.forEach((it,i)=>{const x=w.M+i*(tw+g);p.drawRectangle({x,y:w.y-h,width:tw,height:h,color:hexc('#F4F7F5'),borderColor:hexc('#DCE5DF'),borderWidth:.8});
+    const n=pcl(String(it.n));p.drawText(n,{x:x+tw/2-w.B.widthOfTextAtSize(n,22)/2,y:w.y-26,size:22,font:w.B,color:hexc(it.c||'#1B4332')});
+    const l=pcl(it.l);p.drawText(l,{x:x+tw/2-w.F.widthOfTextAtSize(l,8.5)/2,y:w.y-39,size:8.5,font:w.F,color:hexc('#6B7C73')});
+    if(it.d){const d=pcl(it.d.t),dw=w.F.widthOfTextAtSize(d,7.5);p.drawText(d,{x:x+tw/2-dw/2,y:w.y-49,size:7.5,font:w.F,color:hexc(it.d.c)})}});w.y-=h+12}
+async function pbuildDbStats(){const f=S.nc||'',ps=S.players.filter(p=>!f||p.cat===f),w=await pmk(false),tw=w.W-2*w.M,gap=10,cw=(tw-gap)/2;
+  phdr(w,'Tableau de bord','Stats base de données',(f?CATLBL[f]:'Toutes catégories')+'   |   '+ps.length+' joueurs','');
+  const clubs=new Set(ps.map(p=>String(p.club||'').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/\s+/g,' ')).filter(Boolean)).size;
+  pkpiG(w,[{n:ps.length,l:'joueurs'},{n:clubs,l:'clubs différents'},{n:ps.filter(p=>nk(p.note)==='A').length,l:'notés A',c:NCOL.A[0]}]);
+  const ST=['À observer','À suivre','Validé','Écarté','Recruté'],G='#9AA5A0';
+  const nN=['A','B','C','D'].map(k=>[k==='A'?'Note A':'Note '+k,ps.filter(p=>nk(p.note)===k).length,NCOL[k][0]]).concat([['Sans note',ps.filter(p=>!nk(p.note)).length,G]]);
+  const nP=Object.keys(POTC).map(k=>[k.replace('Potentiel ',''),ps.filter(p=>p.potentiel===k).length,POTC[k][0]]).concat([['Aucun',ps.filter(p=>!POTC[p.potentiel]).length,G]]);
+  const nS=ST.map(k=>[k,ps.filter(p=>p.statut===k).length,STC[k][1]]).concat([['Sans statut',ps.filter(p=>!ST.includes(p.statut)).length,G]]);
+  const dv={};ps.forEach(p=>{const k=p.champ||'Non renseigné';dv[k]=(dv[k]||0)+1});const nD=Object.entries(dv).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).map(([k,n])=>[k,n,k==='Non renseigné'?G:'#40916C']);
+  const bc=(t,s,items,lw)=>{const b=pbarsG(w,items,ps.length,lw||70);return pcardG(w,cw,t,ps.length,s,b.h,b.body)};
+  /* couverture par poste */
+  const RH=16,cov=pcardG(w,cw,'Couverture par poste','','Joueurs A / B / autres par poste',POSTES.length*RH,(x,y,bw)=>{const p=w.pg;
+    POSTES.forEach((po,i)=>{const l=ps.filter(q=>q.poste===po),a=l.filter(q=>nk(q.note)==='A').length,b=l.filter(q=>nk(q.note)==='B').length,o=l.length-a-b,ry=y-i*RH,col=PCG[plcl(po)]||PCG.x,lb=pcl(ab(po));
+      p.drawRectangle({x,y:ry-13,width:22,height:12,color:hexc(col)});p.drawText(lb,{x:x+11-w.B.widthOfTextAtSize(lb,7)/2,y:ry-10,size:7,font:w.B,color:hexc('#FFFFFF')});
+      p.drawText(ptrunc(w,po,w.F,8.5,86),{x:x+27,y:ry-10,size:8.5,font:w.F,color:hexc('#22302B')});
+      const bx=x+118,bwid=bw-118-62,tot=a+b+o;p.drawRectangle({x:bx,y:ry-11,width:bwid,height:7,color:hexc('#EEF3EF')});
+      if(tot){let cx=bx;[[a,'#1B4332'],[b,'#40916C'],[o,'#B7E4C7']].forEach(([n,c])=>{if(n){const ww=n/tot*bwid;p.drawRectangle({x:cx,y:ry-11,width:ww,height:7,color:hexc(c)});cx+=ww}})}
+      if(a+b===0){const t=l.length?'Aucun A/B':'Vide',tw2=w.B.widthOfTextAtSize(t,6.5)+8;p.drawRectangle({x:x+bw-tw2,y:ry-12,width:tw2,height:10,color:hexc('#F4E4E3')});p.drawText(t,{x:x+bw-tw2+4,y:ry-9.5,size:6.5,font:w.B,color:hexc('#8C3D34')})}
+      else{let tx=x+bw,parts=[];if(o)parts.push([String(o),'#6B7C73',w.F]);if(b)parts.push([b+'B','#1B4332',w.B]);if(a)parts.push([a+'A','#1B4332',w.B]);parts.forEach(([t,c,fo])=>{tx-=fo.widthOfTextAtSize(t,8)+4;p.drawText(t,{x:tx,y:ry-10,size:8,font:fo,color:hexc(c)})})}})});
+  /* pyramide des âges */
+  const ag=ps.map(p=>age(p.naissance)).filter(x=>x!==''&&!isNaN(x)).map(Number),AH=84;let agc;
+  if(!ag.length)agc=pcardG(w,cw,'Pyramide des âges',0,'',16,(x,y)=>w.pg.drawText('Aucun âge renseigné.',{x,y:y-10,size:8.5,font:w.F,color:hexc('#6B7C73')}));
+  else{const lo=Math.min(...ag),hi=Math.max(...ag),c={};ag.forEach(a=>c[a]=(c[a]||0)+1);const mx=Math.max(...Object.values(c)),n=hi-lo+1,avg=(ag.reduce((a,b)=>a+b,0)/ag.length).toFixed(1).replace('.',',');
+    agc=pcardG(w,cw,'Pyramide des âges',ag.length,'Âge moyen : '+avg+' ans ('+ag.length+' joueurs)',AH+20,(x,y,bw)=>{const p=w.pg,sl=bw/n,bwd=Math.min(16,sl*.7);
+      for(let a=lo;a<=hi;a++){const i=a-lo,cx=x+i*sl+sl/2,hh=c[a]?Math.max(3,c[a]/mx*(AH-14)):1;p.drawRectangle({x:cx-bwd/2,y:y-AH-4,width:bwd,height:hh,color:hexc('#40916C'),opacity:c[a]?1:.25});
+        if(c[a]){const t=String(c[a]);p.drawText(t,{x:cx-w.B.widthOfTextAtSize(t,7.5)/2,y:y-AH-4+hh+2,size:7.5,font:w.B,color:hexc('#1B4332')})}
+        const t=String(a);p.drawText(t,{x:cx-w.F.widthOfTextAtSize(t,7)/2,y:y-AH-14,size:7,font:w.F,color:hexc('#6B7C73')})}})}
+  pgridG(w,[cov,bc('Répartition par division','Où tu regardes le plus',nD,90),agc,bc('Répartition des notes','Vivier plutôt haut ou bas de gamme ?',nN),bc('Répartition du potentiel','Du plus haut (LDC) au plus bas (N1)',nP),bc('Statuts de suivi','À observer, à suivre, validé...',nS)],cw,gap);
+  pfoot(w,'Talent Radar Scout  |  Stats base de données  |  '+new Date().toLocaleDateString('fr-FR'));return w}
+async function pbuildScoutStats(){scoutStats();const d=window._ss,w=await pmk(false),tw=w.W-2*w.M,gap=10,cw=(tw-gap)/2,MN=['janv.','févr.','mars','avr.','mai','juin','juil.','août','sept.','oct.','nov.','déc.'];
   phdr(w,'Tableau de bord','Stats scouting','12 derniers mois   |   '+new Date().toLocaleDateString('fr-FR'),'');
-  const K=[['',0],['Ce mois-ci',70,'c'],['Mois dernier',80,'c']];K[0][1]=tw-150;
-  psec(w,'Ce mois-ci ('+MN[d.now.getMonth()]+' '+d.now.getFullYear()+')');prow(w,K,['','Ce mois-ci','Mois dernier'],1);
-  [['Joueurs vus',d.seen.c,d.seen.p],['Matchs couverts',d.mc.cur,d.mc.pv],['Rapports joueurs',d.rc.cur,d.rc.pv]].forEach((r,i)=>prow(w,K,r,0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12;
-  const M=[['Mois',0],['Rapports Joueurs',100,'c'],['Rapports Matchs',100,'c'],['Total',60,'c']];M[0][1]=tw-260;
-  psec(w,'Observations par mois');prow(w,M,M.map(x=>x[0]),1);d.months.forEach((m,i)=>prow(w,M,[m.l+' '+m.y,m.r,m.m,m.r+m.m],0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12;
-  const top=(t,o,l1)=>{const e=Object.entries(o).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,10);psec(w,t);if(!e.length){w.pg.drawText('Aucune donnee',{x:w.M,y:w.y-4,size:9,font:w.F,color:hexc('#6B7C73')});w.y-=18;return}
-    const C=[[l1,0],['Nombre',70,'c']];C[0][1]=tw-70;prow(w,C,[l1,'Nombre'],1);e.forEach(([k,n],i)=>prow(w,C,[k,n],0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12};
-  top('Clubs les plus vus',d.clubs,'Club');top('Competitions les plus vues',d.comps,'Competition');
+  const tot=d.months.reduce((a,m)=>a+m.r+m.m,0),mx=Math.max(1,...d.months.map(m=>m.r+m.m)),CH=70;
+  const mon=pcardG(w,cw,'Observations par mois',tot,'12 derniers mois',CH+34,(x,y,bw)=>{const p=w.pg,sl=bw/12,bwd=Math.min(16,sl*.7);
+    d.months.forEach((m,i)=>{const cx=x+i*sl+sl/2;let by=y-CH-6;const t=m.r+m.m;
+      if(m.r){const h=Math.max(3,m.r/mx*CH);p.drawRectangle({x:cx-bwd/2,y:by,width:bwd,height:h,color:hexc('#95D5B2')});by+=h+1}
+      if(m.m){const h=Math.max(3,m.m/mx*CH);p.drawRectangle({x:cx-bwd/2,y:by,width:bwd,height:h,color:hexc('#2E9E5B')});by+=h+1}
+      if(!t)p.drawRectangle({x:cx-bwd/2,y:y-CH-6,width:bwd,height:1.5,color:hexc('#9AA5A0'),opacity:.4});
+      else{const s=String(t);p.drawText(s,{x:cx-w.B.widthOfTextAtSize(s,7.5)/2,y:by+1,size:7.5,font:w.B,color:hexc('#1B4332')})}
+      const l=pcl(m.l.replace('.','')),lw=w.F.widthOfTextAtSize(l,6.5);p.drawText(l,{x:cx-lw/2,y:y-CH-16,size:6.5,font:w.F,color:hexc('#6B7C73')})});
+    [['Rapports Joueurs','#95D5B2'],['Rapports Matchs','#2E9E5B']].reduce((lx,[t,c])=>{p.drawRectangle({x:lx,y:y-CH-30,width:7,height:7,color:hexc(c)});p.drawText(t,{x:lx+10,y:y-CH-29,size:7.5,font:w.F,color:hexc('#22302B')});return lx+10+w.F.widthOfTextAtSize(t,7.5)+14},x)});
+  const dl=(a,b)=>{const q=a-b;return q===0?{t:'= mois dernier',c:'#6B7C73'}:{t:(q>0?'+':'')+q+' vs mois dernier',c:q>0?'#2E9E5B':'#D9822B'}};
+  const kw=(cw-20-12)/3,mth=pcardG(w,cw,'Ce mois-ci',d.seen.c,MN[d.now.getMonth()]+' '+d.now.getFullYear(),58,(x,y,bw)=>{const p=w.pg;
+    [[d.seen.c,'joueurs vus',dl(d.seen.c,d.seen.p)],[d.mc.cur,'matchs couverts',dl(d.mc.cur,d.mc.pv)],[d.rc.cur,'rapports joueurs',dl(d.rc.cur,d.rc.pv)]].forEach(([n,l,dd],i)=>{const kx=x+i*(kw+6);
+      p.drawRectangle({x:kx,y:y-54,width:kw,height:54,color:hexc('#F4F7F5')});const ns=String(n);p.drawText(ns,{x:kx+kw/2-w.B.widthOfTextAtSize(ns,17)/2,y:y-22,size:17,font:w.B,color:hexc('#1B4332')});
+      const l2=ptrunc(w,l,w.F,7.5,kw-4);p.drawText(l2,{x:kx+kw/2-w.F.widthOfTextAtSize(l2,7.5)/2,y:y-33,size:7.5,font:w.F,color:hexc('#6B7C73')});
+      const t=ptrunc(w,dd.t,w.F,6.5,kw-2);p.drawText(t,{x:kx+kw/2-w.F.widthOfTextAtSize(t,6.5)/2,y:y-45,size:6.5,font:w.F,color:hexc(dd.c)})})});
+  const top=(t,s,o)=>{const e=Object.entries(o).sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,6),tt=Object.values(o).reduce((a,b)=>a+b,0);
+    if(!e.length)return pcardG(w,cw,t,0,s,16,(x,y)=>w.pg.drawText('Aucune donnée.',{x,y:y-10,size:8.5,font:w.F,color:hexc('#6B7C73')}));
+    const b=pbarsG(w,e.map(([k,n])=>[k,n,'#40916C']),tt,110);return pcardG(w,cw,t,Object.keys(o).length,s,b.h,b.body)};
+  pgridG(w,[mon,mth,top('Clubs les plus vus','Nombre de matchs couverts',d.clubs),top('Compétitions les plus vues','Matchs et rapports',d.comps)],cw,gap);
   pfoot(w,'Talent Radar Scout  |  Stats scouting  |  '+new Date().toLocaleDateString('fr-FR'));return w}
 async function pdfDash(kind){const d=new Date().toISOString().slice(0,10);if(kind==='stats')await psave(await pbuildDbStats(),'Stats_base_'+d+'.pdf');else if(kind==='scout')await psave(await pbuildScoutStats(),'Stats_scouting_'+d+'.pdf');else if(kind==='notes')await pdfNotes();else await psave(await pbuildProj(),'Projection_club'+(S.vp?'_'+S.vp:'')+'_'+d+'.pdf')}
+async function pbuildRepList(){const w=await pmk(true),tw=w.W-2*w.M,l=[...S.reports].sort((a,b)=>(b.date||'').localeCompare(a.date||'')).filter(rfOk);
+  if(!l.length)throw new Error('Aucun rapport à exporter.');
+  const PC={g:'#D98A1F',d:'#1F4E8C',m:'#0E7C86',a:'#B5443B',x:'#6B7280'},G='#2E9E5B';
+  const C=[['Note',32,'n'],['Joueur',190,'j'],['Poste',50,'pp'],['Match',0],['Date',74,'c']];C[3][1]=tw-C.filter((c,k)=>k!==3).reduce((n,c)=>n+c[1],0);
+  const HC=C.map(c=>[c[0],c[1],c[2]==='pp'?'c':c[2]]),hdr=()=>prow(w,HC,HC.map(c=>c[0]),1);
+  const row=(r,i)=>{const comp=(r.vals||{})['0|Compétition']||'',sm=splitMatch(r.match),tm=vsd(sm.teams||r.match),pl=plOfRep(r),cat=pl&&CATLBL[pl.cat]||'',e=nz(eqOf(r)),h=comp?38:28;
+    if(w.y-h<50){w.add();hdr()}
+    const P=w.pg,y0=w.y;P.drawRectangle({x:w.M,y:y0-h,width:tw,height:h,color:hexc(i%2?'#F6F9F7':'#FFFFFF')});let x=w.M;
+    C.forEach((c,k)=>{const cy=y0-h/2;
+      if(k===0){const col=NCOL[nk(r.cl)];if(col){const t=pcl(r.cl);P.drawRectangle({x,y:y0-h,width:c[1],height:h,color:hexc(col[0])});P.drawText(t,{x:x+c[1]/2-w.B.widthOfTextAtSize(t,10)/2,y:cy-3.5,size:10,font:w.B,color:hexc(col[1])})}}
+      else if(k===1){let t=pcl(r.name||'');while(t.length>3&&w.B.widthOfTextAtSize(t,9.5)>c[1]-12)t=t.slice(0,-2);P.drawText(t,{x:x+6,y:cat?cy+1:cy-3.3,size:9.5,font:w.B,color:hexc('#22302B')});if(cat)P.drawText(pcl(cat),{x:x+6,y:cy-9,size:7,font:w.F,color:hexc('#6B7C73')})}
+      else if(k===2){const t=pcl(ab(r.k)),bg=PC[plcl(r.k)]||'#6B7280',pw=Math.max(26,w.B.widthOfTextAtSize(t,7.5)+12);P.drawRectangle({x:x+c[1]/2-pw/2,y:cy-7,width:pw,height:14,color:hexc(bg)});P.drawText(t,{x:x+c[1]/2-w.B.widthOfTextAtSize(t,7.5)/2,y:cy-2.6,size:7.5,font:w.B,color:hexc('#FFFFFF')})}
+      else if(k===3){let cx=x+6;const ty=comp?y0-15:cy-3.3,parts=String(tm).split(' - ');parts.forEach((t0,j)=>{const t=pcl(t0),n=nz(t0),hl=e&&n&&(n.includes(e)||e.includes(n)),ft=hl?w.B:w.F;
+          if(j){P.drawText(' - ',{x:cx,y:ty,size:9,font:w.F,color:hexc('#6B7C73')});cx+=w.F.widthOfTextAtSize(' - ',9)}
+          P.drawText(t,{x:cx,y:ty,size:9,font:ft,color:hexc(hl?G:'#22302B')});cx+=ft.widthOfTextAtSize(t,9)});
+        if(comp){const t=pcl(cab(comp)),cc=compCol(comp),bg=/^#[0-9a-fA-F]{3,6}$/.test(cc||'')?cc:'#40916C',pw=w.B.widthOfTextAtSize(t,7)+12;P.drawRectangle({x:x+6,y:y0-h+5,width:pw,height:12,color:hexc(bg)});P.drawText(t,{x:x+12,y:y0-h+8.5,size:7,font:w.B,color:hexc(txc(bg))})}}
+      else{const t=pcl(pfd(r.date));P.drawText(t,{x:x+c[1]/2-w.F.widthOfTextAtSize(t,8.5)/2,y:cy-3,size:8.5,font:w.F,color:hexc('#22302B')})}
+      x+=c[1]});
+    P.drawLine({start:{x:w.M,y:y0-h},end:{x:w.M+tw,y:y0-h},thickness:.4,color:hexc('#DCE5DF')});w.y-=h};
+  phdr(w,'Rapports Joueurs','Rapports Joueurs',(S.saison==='all'?'Toutes les saisons':'Saison '+S.saison)+'   |   '+l.length+' rapport'+(l.length>1?'s':''),'');
+  w.y-=6;hdr();l.forEach(row);
+  pfoot(w,'Talent Radar Scout  |  Rapports Joueurs  |  '+new Date().toLocaleDateString('fr-FR'));return w}
+async function pdfReps(){await psave(await pbuildRepList(),'Rapports_joueurs_'+new Date().toISOString().slice(0,10)+'.pdf')}
 async function pdfList(cat){await psave(await pbuildList(cat),'Liste_'+CATLBL[cat]+'_'+pslug(S.saison==='all'?'toutes_saisons':S.saison)+'.pdf')}
-$('#expdf').onclick=()=>{if(S.view==='cmp'){((S.cmp&&S.cmp.tab==='lab')?pdfLab():pdfCmp()).catch(pdfErr);return}if(S.view==='notes'){pdfNotes().catch(e=>info('Export PDF impossible : '+(e&&e.message||e)));return}if(S.view==='compo'){(S.cmode==='sl'?(slCur()?pdfSL(slCur()):Promise.reject('Aucune shortlist à exporter')):pdfCompo()).catch(e=>info('Export PDF impossible : '+(e&&e.message||e)));return}const n=c=>S.players.filter(p=>p.cat===c&&(S.saison==='all'||p.saison===S.saison)).length;
+$('#expdf').onclick=()=>{if(S.view==='cmp'){((S.cmp&&S.cmp.tab==='lab')?pdfLab():pdfCmp()).catch(pdfErr);return}if(S.view==='rapports'){pdfReps().catch(e=>info('Export PDF impossible : '+(e&&e.message||e)));return}if(S.view==='notes'){pdfNotes().catch(e=>info('Export PDF impossible : '+(e&&e.message||e)));return}if(S.view==='compo'){(S.cmode==='sl'?(slCur()?pdfSL(slCur()):Promise.reject('Aucune shortlist à exporter')):pdfCompo()).catch(e=>info('Export PDF impossible : '+(e&&e.message||e)));return}const n=c=>S.players.filter(p=>p.cat===c&&(S.saison==='all'||p.saison===S.saison)).length;
   $('#md').className='';$('#md').innerHTML=`<h2>Exporter la liste en PDF</h2><div class="bd" style="display:block"><p style="margin:0 0 12px">Choisissez la liste à exporter (${S.saison==='all'?'toutes les saisons':'saison '+S.saison}) :</p><div style="display:flex;flex-direction:column;gap:8px">${CATS.map(c=>`<button data-lp="${c}" style="text-align:left;padding:12px 14px">${CATLBL[c]} — ${n(c)} joueur${n(c)>1?'s':''}</button>`).join('')}</div></div><div class="ft"><button id="no">Fermer</button></div>`;
   $('#ov').classList.add('on');$('#no').onclick=()=>$('#ov').classList.remove('on');
   document.querySelectorAll('[data-lp]').forEach(b=>b.onclick=async()=>{b.disabled=true;try{await pdfList(b.dataset.lp);$('#ov').classList.remove('on')}catch(e){info('Export PDF impossible : '+(e&&e.message||e))}b.disabled=false})};
@@ -3605,7 +3708,7 @@ async function pbuildCompo(){const c=compoGet(),f=c.f,sl=FORM[f],a=c.a[ck(c)],w=
     if(p){let t=pcl((p.nom||'')+(nk(p.note)?'  '+nk(p.note):''));while(t.length>3&&w.B.widthOfTextAtSize(t,7)>84)t=t.slice(0,-2);const tw=w.B.widthOfTextAtSize(t,7)+10;
       P.drawRectangle({x:cx-tw/2,y:cy-27,width:tw,height:12,color:hexc('#14261E'),opacity:.78});P.drawText(t,{x:cx-tw/2+5,y:cy-23.5,size:7,font:w.B,color:wh})}});
   w.y=top-ph-24;
-  w.add();const tw=w.W-2*w.M,C=[['#',22,'c'],['Note',34,'n'],['Joueur',170,'j'],['Pot.',40,'c'],['Âge',34,'c'],['Club',0],['Div.',50,'c'],['Statut',70,'c']];C[5][1]=tw-C.filter((x,k)=>k!==5).reduce((n,x)=>n+x[1],0);
+  w.add();const tw=w.W-2*w.M,C=[['#',22,'c'],['Note',34,'n'],['Joueur',170,'j'],['Pot.',40,'pt'],['Âge',34,'c'],['Club',0],['Div.',50,'c'],['Statut',70,'st']];C[5][1]=tw-C.filter((x,k)=>k!==5).reduce((n,x)=>n+x[1],0);
   GRP.forEach(([n,ps])=>{const l=pl.filter(p=>ps.includes(p.poste)).sort(rkSort);psec(w,n+' ('+l.length+')');
     if(!l.length){w.pg.drawText('Aucun joueur',{x:w.M,y:w.y-4,size:9,font:w.F,color:hexc('#6B7C73')});w.y-=18;return}
     prow(w,C,C.map(x=>x[0]),1);l.forEach((p,i)=>prow(w,C,[i+1,p.note,((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),(p.potentiel||'').replace('Potentiel ',''),age(p.naissance),p.club,p.champ,p.statut],0,i%2?'#F6F9F7':'#FFFFFF'));w.y-=12});
@@ -3616,9 +3719,9 @@ async function pbuildNotes(){const w=await pmk(true),tw=w.W-2*w.M,f=S.nc||'',nq=
   if(!pl.length)throw new Error('Aucun joueur à exporter avec ces filtres.');
   const sub=[S.saison==='all'?'Toutes les saisons':'Saison '+S.saison,f?CATLBL[f]:'Toutes catégories',nq?'Recherche : '+S.nq:'',pl.length+' joueur'+(pl.length>1?'s':'')].filter(Boolean).join('   |   ');
   phdr(w,'Classification par note','Joueurs classés par note',sub,'');
-  const C=[['Note',34,'n'],['Potentiel',84,'c'],['Joueur',176,'j'],['Poste',44,'c'],['Club',0],['Catégorie',64,'c'],['Âge',32,'c'],['Statut',80,'c']];
+  const C=[['Note',34,'n'],['Potentiel',60,'pt'],['Joueur',176,'j'],['Poste',44,'pp'],['Club',0],['Catégorie',64,'c'],['Âge',32,'c'],['Statut',84,'st']];
   C[4][1]=tw-C.filter((c,i)=>i!==4).reduce((s,c)=>s+c[1],0);
-  const val=(p,k)=>({Note:p.note,Potentiel:p.potentiel,Joueur:((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),Poste:ab(p.poste),Club:(p.club||'')+(p.champ?' ('+p.champ+')':''),'Catégorie':CATLBL[p.cat],'Âge':age(p.naissance),Statut:p.statut}[k]??'');
+  const val=(p,k)=>({Note:p.note,Potentiel:(p.potentiel||'').replace('Potentiel ',''),Joueur:((p.prenom||'')+' '+(p.nom||'').toUpperCase()).trim(),Poste:p.poste,Club:(p.club||'')+(p.champ?' ('+p.champ+')':''),'Catégorie':CATLBL[p.cat],'Âge':age(p.naissance),Statut:p.statut}[k]??'');
   let k=0;['A','B','C','D',''].forEach(g=>{const l=pl.filter(p=>nk(p.note)===g).sort((a,b)=>CATS.indexOf(a.cat)-CATS.indexOf(b.cat)||ag(a)-ag(b)||(a.nom||'').localeCompare(b.nom||''));if(!l.length)return;
     if(k++)w.add();else w.need(90);const col=g?NCOL[g]:['#6B7C73','#FFFFFF'],t=(g?'NOTE '+g:'SANS NOTE')+'  -  '+l.length+' joueur'+(l.length>1?'s':'');
     w.pg.drawRectangle({x:w.M,y:w.y-22,width:tw,height:22,color:hexc(col[0])});w.pg.drawText(t,{x:w.M+10,y:w.y-15,size:10.5,font:w.B,color:hexc(col[1])});w.y-=28;
